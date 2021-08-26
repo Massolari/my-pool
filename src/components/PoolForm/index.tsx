@@ -1,7 +1,7 @@
-import { useState } from 'react'
-import { useHistory } from 'react-router-dom'
+import { ChangeEvent, FormEvent, useState } from 'react'
 import { Guid } from "js-guid"
 import poolApi from '../../api/pool'
+import { useHistory } from 'react-router-dom'
 
 type Loading = {
   state: "loading";
@@ -22,10 +22,15 @@ type Pool = {
   title: string;
   description: string;
   createdBy: string;
-  options: string[];
+  options: Option[];
 }
 
-type Pools
+type Option = {
+  title: string;
+  votes: string[];
+}
+
+type State
   = Loading
   | Error
   | Success
@@ -43,14 +48,86 @@ const getEmptyPool = (): Pool => ({
 })
 
 export default function PoolForm(props: PoolFormProps) {
+  const history = useHistory()
+
   const initialState = (props.id) ?
     { state: "loading", id: props.id }
     :
     { state: "loaded", pool: getEmptyPool() }
 
-  const [state, setState] = useState(initialState as Pools)
+  const [state, setState] = useState(initialState as State)
 
-  const history = useHistory()
+  const handleChangeTitle = (event: ChangeEvent<HTMLInputElement>) => {
+    if (state.state === "loaded") {
+      setState({
+        ...state,
+        pool: { ...state.pool, title: event.target.value }
+      })
+    }
+  }
+
+  const handleChangeDescription = (event: ChangeEvent<HTMLInputElement>) => {
+    if (state.state === "loaded") {
+      setState({
+        ...state,
+        pool: { ...state.pool, description: event.target.value }
+      })
+    }
+  }
+
+  const handleChangeOption = (index: number) => (event: ChangeEvent<HTMLInputElement>) => {
+    if (state.state === "loaded") {
+      const newOptions = state.pool.options.map((option, i) =>
+        (i === index) ? { ...option, title: event.target.value } : option
+      )
+      setState({
+        ...state,
+        pool: { ...state.pool, options: newOptions }
+      })
+    }
+  }
+
+  const handleDeleteOption = (index: number) => {
+    if (state.state === "loaded") {
+      const newOptions = state.pool.options.filter((_, i) => i !== index)
+      setState({
+        ...state,
+        pool: { ...state.pool, options: newOptions }
+      })
+    }
+  }
+
+  const handleAddOption = () => {
+    if (state.state === "loaded") {
+      setState({
+        ...state,
+        pool: { ...state.pool, options: [...state.pool.options, { title: "", votes: [] }] }
+      })
+    }
+  }
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (state.state === "loaded") {
+      if (props.id) {
+        poolApi
+          .update(state.pool)
+          .then(() => {
+            alert('Pool saved successfully')
+            history.push('/')
+          })
+          .catch(() => alert('An error occurred while saving the pool'))
+        return
+      }
+      poolApi
+        .create(state.pool)
+        .then(() => {
+          alert('Pool created successfully')
+          history.push('/')
+        })
+        .catch(() => alert('An error occurred while creating the pool'))
+    }
+  }
 
   switch (state.state) {
     case "loading":
@@ -63,27 +140,29 @@ export default function PoolForm(props: PoolFormProps) {
     case "loaded":
       const { pool } = state
       return (
-        <form>
+        <form onSubmit={handleSubmit}>
           <div>
             <span>Pool title</span>
-            <input value={pool.title} />
+            <input value={pool.title} onChange={handleChangeTitle} />
           </div>
           <div>
             <span>Description</span>
-            <input value={pool.description} />
+            <input value={pool.description} onChange={handleChangeDescription} />
           </div>
           <div>
             <span>Options</span>
             <section>
               <ul>
-                {pool.options.map(option => (
-                  <li>
-                    <span>{option}</span>
-                    <button>Delete</button>
+                {pool.options.map((option, index) => (
+                  <li key={index}>
+                    <span>
+                      <input value={option.title} onChange={handleChangeOption(index)} />
+                    </span>
+                    <button type="button" onClick={() => handleDeleteOption(index)}>Delete</button>
                   </li>
                 ))}
               </ul>
-              <button>New option</button>
+              <button type="button" onClick={handleAddOption}>New option</button>
             </section>
           </div>
           <button>Save</button>
