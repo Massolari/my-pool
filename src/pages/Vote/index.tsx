@@ -1,6 +1,7 @@
-import { ChangeEvent, useState } from "react"
-import { useParams } from "react-router-dom"
+import { useState } from "react"
+import { Link, useParams } from "react-router-dom"
 import poolApi from "../../api/pool"
+import Loader from "../../components/Loader"
 
 type Loading = {
   state: "loading";
@@ -57,9 +58,7 @@ export default function Vote() {
   const [state, setState] = useState({ state: "loading" } as State)
   const [vote, setVote] = useState("")
 
-  const handleVote = (event: ChangeEvent<HTMLInputElement>) => {
-    setVote(event.target.value)
-  }
+  const handleVote = (newVote: string) => setVote(newVote)
 
   const handleSubmit = () => {
     if (state.state === "loaded" || state.state === "voted") {
@@ -83,7 +82,7 @@ export default function Vote() {
   const getSubmitText = () => {
     switch (state.state) {
       case "voting":
-        return "Voting..."
+        return <Loader />
 
       case "voted":
         return "Change vote"
@@ -107,7 +106,7 @@ export default function Vote() {
           setState({ state: newState, pool })
         })
         .catch(() => setState({ state: "error" }))
-      return <div>Loading...</div>
+      return <Loader />
 
     case "voting":
     case "voted":
@@ -116,32 +115,43 @@ export default function Vote() {
       const isSubmitting = state.state === "voting"
 
       return (
-        <div>
-          <h2>{pool.title}</h2>
-          <span>{pool.description}</span>
-          <ul>
-            {pool.options.map((option, index) =>
-              <li key={index}>
-                <label>
-                  <input
-                    type="radio"
-                    name="vote"
-                    value={option.title}
-                    checked={option.title === vote}
-                    onChange={handleVote}
+        <div className="mt-24">
+          <header className="text-center mb-8">
+            <h2 className="text-5xl italic font-semibold mb-2">{pool.title}</h2>
+            <span className="font-medium text-xl">{pool.description}</span>
+          </header>
+          <section className="box">
+            <ul className="list-none">
+              {pool.options.map((option, index) =>
+                <li key={index}>
+                  <button
+                    className={`
+                      w-full
+                      ${option.title === vote ? "bg-blue-400 text-white font-medium" : "bg-transparent "}
+                      hover:bg-blue-300
+                      rounded-full p-4 text-xl
+                    `}
+                    onClick={() => handleVote(option.title)}
                     disabled={isSubmitting}
-                  />
-                  {option.title}
-                </label>
-              </li>
-            )}
-          </ul>
-          <button
-            onClick={() => handleSubmit()}
-            disabled={isSubmitting}
-          >
-            {getSubmitText()}
-          </button>
+                  >
+                    {option.title}
+                  </button>
+                </li>
+              )}
+            </ul>
+            <button
+              className="btn btn--green w-full mt-12"
+              onClick={() => handleSubmit()}
+              disabled={isSubmitting}
+            >
+              {getSubmitText()}
+            </button>
+          </section>
+          <span>
+            Create your own pool on&nbsp;
+            <Link to="/" className="text-blue-500 font-bold">My-pool </Link>
+          </span>
+
         </div>
       )
 
@@ -152,5 +162,4 @@ export default function Vote() {
       </div>
       )
   }
-
 }

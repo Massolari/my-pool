@@ -86,13 +86,25 @@ export default function PoolList() {
               <li key={pool.id} className="flex items-center py-4">
                 <span className="text-xl">{`${pool.title} (${getTotalVotes(pool)} votes)`}</span>
                 <div className="flex flex-1 justify-end gap-2">
-                  <button className="btn btn--blue w-14" onClick={() => handleShare(pool)}>
+                  <button
+                    className="btn btn--blue w-14"
+                    onClick={() => handleShare(pool)}
+                    title="Pool link"
+                  >
                     <FontAwesomeIcon icon={faLink} />
                   </button>
-                  <button className="btn btn--yellow w-14" onClick={() => history.push(`/edit/${pool.id}`)}>
+                  <button
+                    className="btn btn--yellow w-14"
+                    onClick={() => history.push(`/edit/${pool.id}`)}
+                    title="Edit pool"
+                  >
                     <FontAwesomeIcon icon={faEdit} />
                   </button>
-                  <button className="btn btn--red w-14" onClick={() => handleDelete(pool)}>
+                  <button
+                    className="btn btn--red w-14"
+                    onClick={() => handleDelete(pool)}
+                    title="Delete pool"
+                  >
                     <FontAwesomeIcon icon={faTrash} />
                   </button>
                 </div>

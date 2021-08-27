@@ -4,7 +4,7 @@ import poolApi from '../../api/pool'
 import { useHistory } from 'react-router-dom'
 import Loader from '../Loader'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTrash } from '@fortawesome/free-solid-svg-icons'
+import { faPlus, faTrash } from '@fortawesome/free-solid-svg-icons'
 
 type Loading = {
   state: "loading";
@@ -15,7 +15,7 @@ type Error = {
   state: "error";
 }
 
-type Success = {
+type Loaded = {
   state: "loaded";
   pool: Pool;
 }
@@ -33,10 +33,16 @@ type Option = {
   votes: string[];
 }
 
+type Submitting = {
+  state: "submitting";
+  pool: Pool;
+}
+
 type State
   = Loading
   | Error
-  | Success
+  | Loaded
+  | Submitting
 
 type PoolFormProps = {
   id: string | undefined
@@ -112,6 +118,7 @@ export default function PoolForm(props: PoolFormProps) {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (state.state === "loaded") {
+      setState({ ...state, state: "submitting" })
       if (props.id) {
         poolApi
           .update(state.pool)
@@ -141,7 +148,11 @@ export default function PoolForm(props: PoolFormProps) {
       return <Loader />
 
     case "loaded":
+    case "submitting":
       const { pool } = state
+
+      const isSubmitting = state.state === "submitting"
+      const btnSubmitContent = isSubmitting ? <Loader /> : "Save"
       return (
         <form onSubmit={handleSubmit} className="text-xl flex flex-col gap-6">
           <div className="field">
@@ -151,6 +162,7 @@ export default function PoolForm(props: PoolFormProps) {
               onChange={handleChangeTitle}
               placeholder="My awesome pool"
               className="input-text"
+              disabled={isSubmitting}
             />
           </div>
           <div className="field">
@@ -161,6 +173,7 @@ export default function PoolForm(props: PoolFormProps) {
               onChange={handleChangeDescription}
               rows={2}
               value={pool.description}
+              disabled={isSubmitting}
             ></textarea>
           </div>
           <div className="field">
@@ -175,18 +188,36 @@ export default function PoolForm(props: PoolFormProps) {
                         value={option.title}
                         onChange={handleChangeOption(index)}
                         placeholder={`Option ${index + 1}`}
+                        disabled={isSubmitting}
                       />
                     </span>
-                    <button className="btn btn--red w-14" type="button" onClick={() => handleDeleteOption(index)}>
+                    <button
+                      className="btn btn--red w-14"
+                      type="button"
+                      onClick={() => handleDeleteOption(index)}
+                      disabled={isSubmitting}
+                    >
                       <FontAwesomeIcon icon={faTrash} />
                     </button>
                   </li>
                 ))}
               </ul>
-              <button className="btn btn--blue px-4 mx-auto" type="button" onClick={handleAddOption}>New option</button>
+              <button
+                className="btn btn--blue w-14 mx-auto"
+                type="button"
+                onClick={handleAddOption}
+                disabled={isSubmitting}
+              >
+                <FontAwesomeIcon icon={faPlus} />
+              </button>
             </section>
           </div>
-          <button className="btn btn--green w-full">Save</button>
+          <button
+            disabled={isSubmitting}
+            className="btn btn--green w-full"
+          >
+            {btnSubmitContent}
+          </button>
         </form>
       )
 
