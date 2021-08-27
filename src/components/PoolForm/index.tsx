@@ -2,6 +2,9 @@ import { ChangeEvent, FormEvent, useState } from 'react'
 import { Guid } from "js-guid"
 import poolApi from '../../api/pool'
 import { useHistory } from 'react-router-dom'
+import Loader from '../Loader'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faTrash } from '@fortawesome/free-solid-svg-icons'
 
 type Loading = {
   state: "loading";
@@ -66,7 +69,7 @@ export default function PoolForm(props: PoolFormProps) {
     }
   }
 
-  const handleChangeDescription = (event: ChangeEvent<HTMLInputElement>) => {
+  const handleChangeDescription = (event: ChangeEvent<HTMLTextAreaElement>) => {
     if (state.state === "loaded") {
       setState({
         ...state,
@@ -135,37 +138,55 @@ export default function PoolForm(props: PoolFormProps) {
         .get(state.id)
         .then((pool: Pool) => setState({ state: "loaded", pool }))
         .catch(() => setState({ state: "error" }))
-      return <div>Loading...</div>
+      return <Loader />
 
     case "loaded":
       const { pool } = state
       return (
-        <form onSubmit={handleSubmit}>
-          <div>
-            <span>Pool title</span>
-            <input value={pool.title} onChange={handleChangeTitle} />
+        <form onSubmit={handleSubmit} className="text-xl flex flex-col gap-6">
+          <div className="field">
+            <span className="field-label">Pool title</span>
+            <input
+              value={pool.title}
+              onChange={handleChangeTitle}
+              placeholder="My awesome pool"
+              className="input-text"
+            />
           </div>
-          <div>
-            <span>Description</span>
-            <input value={pool.description} onChange={handleChangeDescription} />
+          <div className="field">
+            <span className="field-label">Description</span>
+            <textarea
+              className="textarea"
+              placeholder="What do you think about..."
+              onChange={handleChangeDescription}
+              rows={2}
+              value={pool.description}
+            ></textarea>
           </div>
-          <div>
-            <span>Options</span>
-            <section>
+          <div className="field">
+            <span className="field-label">Options</span>
+            <section className="box box--white flex-1">
               <ul>
                 {pool.options.map((option, index) => (
-                  <li key={index}>
+                  <li key={index} className="flex items-center gap-6 py-2">
                     <span>
-                      <input value={option.title} onChange={handleChangeOption(index)} />
+                      <input
+                        className="border-b border-black"
+                        value={option.title}
+                        onChange={handleChangeOption(index)}
+                        placeholder={`Option ${index + 1}`}
+                      />
                     </span>
-                    <button type="button" onClick={() => handleDeleteOption(index)}>Delete</button>
+                    <button className="btn btn--red w-14" type="button" onClick={() => handleDeleteOption(index)}>
+                      <FontAwesomeIcon icon={faTrash} />
+                    </button>
                   </li>
                 ))}
               </ul>
-              <button type="button" onClick={handleAddOption}>New option</button>
+              <button className="btn btn--blue px-4 mx-auto" type="button" onClick={handleAddOption}>New option</button>
             </section>
           </div>
-          <button>Save</button>
+          <button className="btn btn--green w-full">Save</button>
         </form>
       )
 

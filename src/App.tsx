@@ -13,12 +13,14 @@ if (!localStorage.getItem('guestId')) {
 function App() {
   return (
     <Router>
-      <Switch>
-        <Route path="/" exact component={Home} />
-        <Route path="/new" component={EditPool} />
-        <Route path="/edit/:id" component={EditPool} />
-        <Route path="/vote/:id" component={Vote} />
-      </Switch>
+      <div className="main-container">
+        <Switch>
+          <Route path="/" exact component={Home} />
+          <Route path="/new" component={EditPool} />
+          <Route path="/edit/:id" component={EditPool} />
+          <Route path="/vote/:id" component={Vote} />
+        </Switch>
+      </div>
     </Router>
   );
 }

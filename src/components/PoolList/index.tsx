@@ -1,6 +1,9 @@
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useState } from 'react'
 import { useHistory } from 'react-router-dom'
 import poolApi from '../../api/pool'
+import Loader from '../Loader'
+import { faEdit, faLink, faTrash } from '@fortawesome/free-solid-svg-icons'
 
 type Loading = {
   state: "loading";
@@ -69,23 +72,30 @@ export default function PoolList() {
         .then((pools: Pool[]) => pools.filter((pool: Pool) => pool.createdBy === guestId))
         .then((pools: Pool[]) => setPools({ state: "loaded", pools }))
         .catch(() => setPools({ state: "error" }))
-      return <div>Loading...</div>
+      return <Loader />
 
     case "loaded":
       if (pools.pools.length === 0) {
-        return <div>You dont' have any pools yet! Create one!</div>
+        return <div className="flex align-center justify-center">You dont' have any pools yet! Create one!</div>
       }
       return (
         <ul>
           {pools
             .pools
             .map((pool: Pool) => (
-              <li key={pool.id}>
-                <span>{`${pool.title} (${getTotalVotes(pool)} votes)`}</span>
-                <button onClick={() => handleShare(pool)}>Share</button>
-                <button onClick={() => history.push(`/edit/${pool.id}`)}>Edit</button>
-                <button>View</button>
-                <button onClick={() => handleDelete(pool)}>Delete</button>
+              <li key={pool.id} className="flex items-center py-4">
+                <span className="text-xl">{`${pool.title} (${getTotalVotes(pool)} votes)`}</span>
+                <div className="flex flex-1 justify-end gap-2">
+                  <button className="btn btn--blue w-14" onClick={() => handleShare(pool)}>
+                    <FontAwesomeIcon icon={faLink} />
+                  </button>
+                  <button className="btn btn--yellow w-14" onClick={() => history.push(`/edit/${pool.id}`)}>
+                    <FontAwesomeIcon icon={faEdit} />
+                  </button>
+                  <button className="btn btn--red w-14" onClick={() => handleDelete(pool)}>
+                    <FontAwesomeIcon icon={faTrash} />
+                  </button>
+                </div>
               </li>
             )
             )
